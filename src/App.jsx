@@ -1,35 +1,74 @@
-import { useState } from 'react'
-import reactLogo from './assets/react.svg'
-import viteLogo from '/vite.svg'
-import './App.css'
+import { Link } from "react-router-dom";
+import "./App.css";
+import { useEffect, useState } from "react";
+import { convertTimeIntoAMPM } from "./utils/functions";
 
 function App() {
-  const [count, setCount] = useState(0)
+  const [Notes, setNotes] = useState();
+  let currentDate = new Date();
+  let formattedTime = convertTimeIntoAMPM(currentDate);
+  const formatter = new Intl.DateTimeFormat("en-GB", {
+    day: "2-digit",
+    month: "short",
+  });
+  let formattedDate = formatter.format(currentDate);
+
+  useEffect(() => {
+    const localNotes = localStorage.getItem("notes");
+
+    if (localNotes !== null) {
+      const parsedLocalNotes = JSON.parse(localNotes);
+      setNotes(parsedLocalNotes);
+    } else {
+      const notesData = [
+        {
+          id: 0,
+          title: "First Post",
+          description: [],
+          time: formattedTime,
+          date: formattedDate,
+        },
+      ];
+      localStorage.setItem("notes", JSON.stringify(notesData));
+      setNotes(notesData);
+    }
+  }, []);
 
   return (
-    <>
-      <div>
-        <a href="https://vitejs.dev" target="_blank">
-          <img src={viteLogo} className="logo" alt="Vite logo" />
-        </a>
-        <a href="https://react.dev" target="_blank">
-          <img src={reactLogo} className="logo react" alt="React logo" />
-        </a>
+    <section>
+      <div className="container">
+        <div className="header">
+          <h1>Notes</h1>
+          <Link to="/new-note" className="button">
+            <span className="plus">+</span> new
+          </Link>
+        </div>
+        <ul className="note-list">
+          {Notes?.map((item, i) => {
+            return (
+              <li key={item.id}>
+                <Link to={`note/${i}`} className="note-card">
+                  <h2 className="title">{item.title}</h2>
+                  {item.description[0]?.type === "text" && (
+                    <p>{item.description[0].src}</p>
+                  )}
+                  <span className="date-time">
+                    <span className="time">{item.time}</span>
+                    <span className="date">{item.date}</span>
+                  </span>
+                </Link>
+              </li>
+            );
+          })}
+        </ul>
+        <div className="footer">
+          <Link to="/new-note" className="button">
+            <span className="plus">+</span> new
+          </Link>
+        </div>
       </div>
-      <h1>Vite + React</h1>
-      <div className="card">
-        <button onClick={() => setCount((count) => count + 1)}>
-          count is {count}
-        </button>
-        <p>
-          Edit <code>src/App.jsx</code> and save to test HMR
-        </p>
-      </div>
-      <p className="read-the-docs">
-        Click on the Vite and React logos to learn more
-      </p>
-    </>
-  )
+    </section>
+  );
 }
 
-export default App
+export default App;
